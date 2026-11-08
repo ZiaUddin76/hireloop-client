@@ -26,11 +26,21 @@ function GithubIcon({ className }: React.ComponentProps<"svg">) {
 
 type Mode = "sign-in" | "sign-up"
 
+const ROLES = ["seeker", "recruiter", "admin"] as const
+type Role = (typeof ROLES)[number]
+
+const ROLE_LABELS: Record<Role, string> = {
+  seeker: "Seeker",
+  recruiter: "Recruiter",
+  admin: "Admin",
+}
+
 export type AuthFormData = {
   name?: string
   email: string
   password: string
   remember: boolean
+  role?: Role
 }
 
 type AuthSubmitHandler = (data: AuthFormData) => void | Promise<unknown>
@@ -74,12 +84,14 @@ export function AuthForm({
         email: string
         password: string
         remember?: string
+        role?: Role
       }
       const payload: AuthFormData = {
         name: data.name,
         email: data.email,
         password: data.password,
         remember: data.remember === "on",
+        role: isSignIn ? undefined : data.role,
       }
 
       if (onSubmit) {
@@ -100,6 +112,7 @@ export function AuthForm({
           name: payload.name ?? "",
           email: payload.email,
           password: payload.password,
+          role: payload.role,
           callbackURL: "/",
         })
         if (error) console.error("sign-up failed:", error.message)
@@ -159,6 +172,34 @@ export function AuthForm({
               placeholder="Jane Appleseed"
               className="h-11 rounded-xl border-white/10 bg-white/5 text-white placeholder:text-white/40"
             />
+          </div>
+        )}
+
+        {!isSignIn && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="role" className="text-white">
+              I am a
+            </Label>
+            <div
+              data-slot="role-picker"
+              id="role"
+              className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-white/5 p-1"
+            >
+              {ROLES.map((role) => (
+                <label key={role} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value={role}
+                    defaultChecked={role === "seeker"}
+                    className="peer sr-only"
+                  />
+                  <span className="flex h-9 items-center justify-center rounded-lg text-sm text-white/60 transition-colors hover:text-white peer-checked:bg-[#5c53fe] peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+                    {ROLE_LABELS[role]}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
         )}
 
