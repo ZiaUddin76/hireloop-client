@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -65,6 +66,7 @@ export function AuthForm({
   className?: string
   onSubmit?: AuthSubmitHandler
 }) {
+  const router = useRouter()
   const isSignIn = mode === "sign-in"
   const other: Mode = isSignIn ? "sign-up" : "sign-in"
   const [showPassword, setShowPassword] = React.useState(false)
@@ -106,7 +108,12 @@ export function AuthForm({
           rememberMe: payload.remember,
           callbackURL: "/",
         })
-        if (error) console.error("sign-in failed:", error.message)
+        if (error) {
+          console.error("sign-in failed:", error.message)
+        } else {
+          router.push("/")
+          router.refresh()
+        }
       } else {
         const { error } = await authClient.signUp.email({
           name: payload.name ?? "",
@@ -115,7 +122,12 @@ export function AuthForm({
           role: payload.role,
           callbackURL: "/",
         })
-        if (error) console.error("sign-up failed:", error.message)
+        if (error) {
+          console.error("sign-up failed:", error.message)
+        } else {
+          router.push("/")
+          router.refresh()
+        }
       }
     } finally {
       setIsSubmitting(false)
