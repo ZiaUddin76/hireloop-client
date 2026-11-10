@@ -28,10 +28,10 @@ import { ChevronDownIcon, LogOutIcon, MenuIcon } from "lucide-react"
 
 import logo from "@/app/images/logo.png"
 
-const NAV_LINKS = [
-  { label: "Browse Jobs", href: "/jobs" },
-  { label: "Pricing", href: "/pricing" },
-] as const
+
+
+
+
 
 const COMPANY_LINKS = [
   { label: "About", href: "/company/about" },
@@ -40,7 +40,22 @@ const COMPANY_LINKS = [
   { label: "Contact", href: "/company/contact" },
 ] as const
 
+
+
 type SessionUser = NonNullable<ReturnType<typeof useSession>["data"]>["user"]
+
+
+// Built per render: the Dashboard href depends on the signed-in user's role,
+// which is only known inside components via `useSession()`.
+function navLinks(user?: SessionUser | null) {
+  return [
+    { label: "Browse Jobs", href: "/jobs" },
+    { label: "Company", href: "/company" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Dashboard", href: `/dashboard/${user?.role || "seeker"}` },
+  ] as const
+}
+
 
 // Shared between the desktop user menu and the mobile sheet:
 // clears the better-auth session and refreshes the page/section cache.
@@ -207,7 +222,7 @@ function MobileMenu({ user }: { user?: SessionUser | null }) {
           >
             Home
           </Link>
-          {NAV_LINKS.map((link) => (
+          {navLinks(user).map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -276,7 +291,7 @@ export function Navbar({ className }: React.ComponentProps<"header">) {
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map((link) => (
+            {navLinks(user).map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
