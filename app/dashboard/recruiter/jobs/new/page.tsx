@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { ArrowRightIcon } from "lucide-react"
+import { createJob } from "@/lib/actions/jobs"
 
 const JOB_CATEGORIES = [
     "Engineering & Tech",
@@ -31,7 +32,7 @@ const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"]
 const PAY_FREQUENCIES = ["per hour", "per day", "per month", "per year"]
 
 // One flat object per job → easy to send to the backend as JSON as-is.
-type JobForm = {
+export type JobForm = {
     title: string
     company: string
     category: string
@@ -93,6 +94,8 @@ function NewJobPage() {
         // TODO: send `job` to the backend API (POST /jobs) once available.
         console.log("Job to publish:", job)
 
+        const result = await createJob(job);
+        console.log("createJob result:", result);
         
     }
 
