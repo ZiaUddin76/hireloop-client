@@ -15,8 +15,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ArrowRightIcon } from "lucide-react"
+import { ArrowRightIcon, CheckCircle2Icon, CircleAlertIcon } from "lucide-react"
 import { createJob } from "@/lib/actions/jobs"
+import type { JobForm } from "@/lib/types/job"
 
 const JOB_CATEGORIES = [
     "Engineering & Tech",
@@ -32,21 +33,6 @@ const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"]
 const PAY_FREQUENCIES = ["per hour", "per day", "per month", "per year"]
 
 // One flat object per job → easy to send to the backend as JSON as-is.
-export type JobForm = {
-    title: string
-    company: string
-    category: string
-    jobType: string
-    remoteAllowed: boolean
-    location: string
-    deadline: string
-    minSalary: string
-    maxSalary: string
-    frequency: string
-    responsibilities: string
-    qualifications: string
-}
-
 const initialJob: JobForm = {
     title: "",
     company: "",
@@ -77,6 +63,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function NewJobPage() {
     const [job, setJob] = React.useState<JobForm>(initialJob)
+    const [submitting, setSubmitting] = React.useState(false)
+    const [statusMessage, setStatusMessage] = React.useState<
+        { kind: "success" | "error"; text: string } | null
+    >(null)
 
     function setField<K extends keyof JobForm>(key: K, value: JobForm[K]) {
         setJob((previous) => ({ ...previous, [key]: value }))
@@ -90,13 +80,24 @@ function NewJobPage() {
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
+        setSubmitting(true)
+        setStatusMessage(null)
 
-        // TODO: send `job` to the backend API (POST /jobs) once available.
-        console.log("Job to publish:", job)
+        const result = await createJob(job)
+        setSubmitting(false)
 
-        const result = await createJob(job);
-        console.log("createJob result:", result);
-        
+        if (result.ok) {
+            setStatusMessage({
+                kind: "success",
+                text: "Job published successfully.",
+            })
+            setJob(initialJob)
+        } else {
+            setStatusMessage({
+                kind: "error",
+                text: result.error ?? "Something went wrong. Please try again.",
+            })
+        }
     }
 
     return (
@@ -345,8 +346,25 @@ function NewJobPage() {
                     </div>
                 </section>
                 <section>
-                    <Button type="submit" form="new-job-form" size="lg">
-                        Publish Job
+                    {statusMessage && (
+                        <p
+                            role="status"
+                            className={`mb-3 flex items-center gap-2 text-sm ${
+                                statusMessage.kind === "success"
+                                    ? "text-emerald-600"
+                                    : "text-destructive"
+                            }`}
+                        >
+                            {statusMessage.kind === "success" ? (
+                                <CheckCircle2Icon className="size-4" />
+                            ) : (
+                                <CircleAlertIcon className="size-4" />
+                            )}
+                            {statusMessage.text}
+                        </p>
+                    )}
+                    <Button type="submit" form="new-job-form" size="lg" disabled={submitting}>
+                        {submitting ? "Publishing..." : "Publish Job"}
                         <ArrowRightIcon data-icon="inline-end" />
                     </Button>
                 </section>
