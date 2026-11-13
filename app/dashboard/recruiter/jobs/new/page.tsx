@@ -1,11 +1,9 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -18,19 +16,16 @@ import {
 import { ArrowRightIcon, CheckCircle2Icon, CircleAlertIcon } from "lucide-react"
 import { createJob } from "@/lib/actions/jobs"
 import type { JobForm } from "@/lib/types/job"
-
-const JOB_CATEGORIES = [
-    "Engineering & Tech",
-    "Design & Creative",
-    "Marketing",
-    "Sales",
-    "Finance & Legal",
-    "Other",
-]
-
-const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"]
-
-const PAY_FREQUENCIES = ["per hour", "per day", "per month", "per year"]
+import {
+    JOB_CATEGORIES,
+    JOB_TYPES,
+    PAY_FREQUENCIES,
+} from "@/lib/constants/job"
+import { PageHeader } from "@/components/dashboard/page-header"
+import { SectionCard } from "@/components/dashboard/section"
+import { FormField, RequiredMark } from "@/components/dashboard/field"
+import { toast } from "@/components/ui/toast"
+import { useRouter } from "next/navigation"
 
 // One flat object per job → easy to send to the backend as JSON as-is.
 const initialJob: JobForm = {
@@ -48,18 +43,6 @@ const initialJob: JobForm = {
     qualifications: "",
 }
 
-function RequiredMark() {
-    return <span className="text-destructive">*</span>
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-    return (
-        <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <span aria-hidden className="size-1.5 rounded-full bg-primary" />
-            {children}
-        </h2>
-    )
-}
 
 function NewJobPage() {
     const [job, setJob] = React.useState<JobForm>(initialJob)
@@ -71,6 +54,8 @@ function NewJobPage() {
     function setField<K extends keyof JobForm>(key: K, value: JobForm[K]) {
         setJob((previous) => ({ ...previous, [key]: value }))
     }
+
+    const router = useRouter();
 
     // Small helpers so inputs stay one-liners below.
     const text =
@@ -91,6 +76,11 @@ function NewJobPage() {
                 kind: "success",
                 text: "Job published successfully.",
             })
+            toast.add({
+                title: "Job created",
+                description: "The job has been successfully created",
+            })
+            router.push('/dashboard/recruiter/jobs')
             setJob(initialJob)
         } else {
             setStatusMessage({
@@ -102,40 +92,22 @@ function NewJobPage() {
 
     return (
         <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6">
-            <p className="text-xs text-muted-foreground">
-                <Link
-                    href="/dashboard/recruiter/jobs"
-                    className="hover:text-foreground"
-                >
-                    Manage Jobs
-                </Link>
-                <span aria-hidden> &gt; </span>
-                <span>Create New Listing</span>
-            </p>
-
-            {/* Header */}
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl font-semibold tracking-tight">
-                        Post a New Job
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Fill in the position specifications to attract qualified talent
-                        across your network.
-                    </p>
-                </div>
-
-            </div>
+            <PageHeader
+                breadcrumbs={[
+                    {
+                        label: "Manage Jobs",
+                        href: "/dashboard/recruiter/jobs",
+                    },
+                    { label: "Create New Listing" },
+                ]}
+                title="Post a New Job"
+                description="Fill in the position specifications to attract qualified talent across your network."
+            />
 
             <form id="new-job-form" onSubmit={handleSubmit} className="mt-6 space-y-6">
                 {/* 1. Basic Information */}
-                <section className="space-y-4 rounded-xl border bg-card p-6">
-                    <SectionTitle>1. Basic Information</SectionTitle>
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="job-title">
-                            Job Title <RequiredMark />
-                        </Label>
+                <SectionCard title="1. Basic Information">
+                    <FormField label="Job Title" htmlFor="job-title" required>
                         <Input
                             id="job-title"
                             name="title"
@@ -145,13 +117,10 @@ function NewJobPage() {
                             onChange={text("title")}
                             required
                         />
-                    </div>
+                    </FormField>
 
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="company-name">
-                                Company Name <RequiredMark />
-                            </Label>
+                        <FormField label="Company Name" htmlFor="company-name" required>
                             <Input
                                 id="company-name"
                                 name="company"
@@ -161,11 +130,8 @@ function NewJobPage() {
                                 onChange={text("company")}
                                 required
                             />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="job-category">
-                                Job Category <RequiredMark />
-                            </Label>
+                        </FormField>
+                        <FormField label="Job Category" htmlFor="job-category" required>
                             <Select
                                 value={job.category || null}
                                 onValueChange={(value) => setField("category", value as string)}
@@ -181,7 +147,7 @@ function NewJobPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                        </div>
+                        </FormField>
                     </div>
 
                     <fieldset className="space-y-1.5">
@@ -198,8 +164,8 @@ function NewJobPage() {
                                         aria-pressed={selected}
                                         onClick={() => setField("jobType", type)}
                                         className={`h-9 rounded-lg border text-sm font-medium transition-colors ${selected
-                                                ? "border-primary bg-primary/10 text-foreground"
-                                                : "text-muted-foreground hover:bg-muted"
+                                            ? "border-primary bg-primary/10 text-foreground"
+                                            : "text-muted-foreground hover:bg-muted"
                                             }`}
                                     >
                                         {type}
@@ -208,17 +174,15 @@ function NewJobPage() {
                             })}
                         </div>
                     </fieldset>
-                </section>
+                </SectionCard>
 
                 {/* 2. Location, Compensation & Timeline */}
-                <section className="space-y-4 rounded-xl border bg-card p-6">
-                    <SectionTitle>2. Location, Compensation &amp; Timeline</SectionTitle>
-
+                <SectionCard title="2. Location, Compensation & Timeline">
                     <div className="flex items-center justify-between gap-4 rounded-lg border bg-background/50 p-3">
                         <div>
-                            <Label htmlFor="remote-allowed" className="font-medium">
+                            <label htmlFor="remote-allowed" className="text-sm font-medium">
                                 Remote Work Allowed (remote)
-                            </Label>
+                            </label>
                             <p className="text-xs text-muted-foreground">
                                 Enable worldwide or distributed candidate applications
                             </p>
@@ -231,10 +195,7 @@ function NewJobPage() {
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="job-location">
-                                Job Location (city) <RequiredMark />
-                            </Label>
+                        <FormField label="Job Location (city)" htmlFor="job-location" required>
                             <Input
                                 id="job-location"
                                 name="location"
@@ -244,11 +205,12 @@ function NewJobPage() {
                                 onChange={text("location")}
                                 required
                             />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="deadline">
-                                Application Deadline (deadline) <RequiredMark />
-                            </Label>
+                        </FormField>
+                        <FormField
+                            label="Application Deadline (deadline)"
+                            htmlFor="deadline"
+                            required
+                        >
                             <Input
                                 id="deadline"
                                 name="deadline"
@@ -258,12 +220,11 @@ function NewJobPage() {
                                 onChange={text("deadline")}
                                 required
                             />
-                        </div>
+                        </FormField>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-3">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="min-salary">Min Salary / Rate</Label>
+                        <FormField label="Min Salary / Rate" htmlFor="min-salary">
                             <Input
                                 id="min-salary"
                                 name="minSalary"
@@ -274,9 +235,8 @@ function NewJobPage() {
                                 value={job.minSalary}
                                 onChange={text("minSalary")}
                             />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="max-salary">Max Salary / Rate</Label>
+                        </FormField>
+                        <FormField label="Max Salary / Rate" htmlFor="max-salary">
                             <Input
                                 id="max-salary"
                                 name="maxSalary"
@@ -287,9 +247,8 @@ function NewJobPage() {
                                 value={job.maxSalary}
                                 onChange={text("maxSalary")}
                             />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="frequency">Frequency</Label>
+                        </FormField>
+                        <FormField label="Frequency" htmlFor="frequency">
                             <Select
                                 value={job.frequency}
                                 onValueChange={(value) =>
@@ -307,18 +266,13 @@ function NewJobPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                        </div>
+                        </FormField>
                     </div>
-                </section>
+                </SectionCard>
 
                 {/* 3. Responsibilities & Requirements */}
-                <section className="space-y-4 rounded-xl border bg-card p-6">
-                    <SectionTitle>3. Responsibilities &amp; Requirements</SectionTitle>
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="responsibilities">
-                            Key Responsibilities <RequiredMark />
-                        </Label>
+                <SectionCard title="3. Responsibilities & Requirements">
+                    <FormField label="Key Responsibilities" htmlFor="responsibilities" required>
                         <Textarea
                             id="responsibilities"
                             name="responsibilities"
@@ -328,12 +282,13 @@ function NewJobPage() {
                             onChange={text("responsibilities")}
                             required
                         />
-                    </div>
+                    </FormField>
 
-                    <div className="space-y-1.5">
-                        <Label htmlFor="qualifications">
-                            Qualifications &amp; Requirements <RequiredMark />
-                        </Label>
+                    <FormField
+                        label="Qualifications & Requirements"
+                        htmlFor="qualifications"
+                        required
+                    >
                         <Textarea
                             id="qualifications"
                             name="qualifications"
@@ -343,17 +298,16 @@ function NewJobPage() {
                             onChange={text("qualifications")}
                             required
                         />
-                    </div>
-                </section>
+                    </FormField>
+                </SectionCard>
                 <section>
                     {statusMessage && (
                         <p
                             role="status"
-                            className={`mb-3 flex items-center gap-2 text-sm ${
-                                statusMessage.kind === "success"
+                            className={`mb-3 flex items-center gap-2 text-sm ${statusMessage.kind === "success"
                                     ? "text-emerald-600"
                                     : "text-destructive"
-                            }`}
+                                }`}
                         >
                             {statusMessage.kind === "success" ? (
                                 <CheckCircle2Icon className="size-4" />

@@ -6,12 +6,11 @@ import { APIError, createAuthMiddleware } from "better-auth/api"
 const client = new MongoClient(process.env.BETTER_AUTH_DB_URI as string)
 const db = client.db("hireloopdb")
 
-export const ROLES = ["seeker", "recruiter", "admin"] as [
-  "seeker",
-  "recruiter",
-  "admin",
-]
-export type Role = (typeof ROLES)[number]
+// Role list lives in lib/types/auth.ts so client components can share it
+// without importing this server-only module. Re-exported here for compat.
+import { ROLES } from "@/lib/types/auth"
+
+export { ROLES, type Role } from "@/lib/types/auth"
 
 export const auth = betterAuth({
   emailAndPassword: {

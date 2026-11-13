@@ -11,6 +11,7 @@ import { cn } from "cn"
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 
 import { authClient } from "@/lib/auth-client"
+import { ROLES, ROLE_LABELS, type Role } from "@/lib/types/auth"
 
 function GithubIcon({ className }: React.ComponentProps<"svg">) {
   return (
@@ -26,15 +27,6 @@ function GithubIcon({ className }: React.ComponentProps<"svg">) {
 }
 
 type Mode = "sign-in" | "sign-up"
-
-const ROLES = ["seeker", "recruiter", "admin"] as const
-type Role = (typeof ROLES)[number]
-
-const ROLE_LABELS: Record<Role, string> = {
-  seeker: "Seeker",
-  recruiter: "Recruiter",
-  admin: "Admin",
-}
 
 export type AuthFormData = {
   name?: string

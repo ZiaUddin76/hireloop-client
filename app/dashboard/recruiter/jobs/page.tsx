@@ -1,9 +1,10 @@
-"use client"
 
 import * as React from "react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { PageHeader } from "@/components/dashboard/page-header"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,18 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
     BriefcaseIcon,
-    Code2Icon,
     MapPinIcon,
-    MegaphoneIcon,
     MoreHorizontalIcon,
-    PaletteIcon,
     PencilIcon,
     PlusIcon,
-    ScaleIcon,
-    Trash2Icon,
-    TrendingUpIcon,
 } from "lucide-react"
 import type { JobListing } from "@/lib/types/job"
+import { CATEGORY_ICONS } from "@/lib/constants/job"
+import { getJobs } from "@/lib/actions/jobs"
+import { DeleteJobDialogue } from "@/app/components/DeleteJobDialogue"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -66,14 +64,6 @@ function locationLabel(job: JobListing) {
     return job.remoteAllowed ? `Remote (${job.location})` : job.location
 }
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-    "Engineering & Tech": Code2Icon,
-    "Design & Creative": PaletteIcon,
-    Marketing: MegaphoneIcon,
-    Sales: TrendingUpIcon,
-    "Finance & Legal": ScaleIcon,
-}
-
 function CategoryIcon({ category }: { category: string }) {
     const Icon = CATEGORY_ICONS[category] ?? BriefcaseIcon
     return <Icon className="size-4" />
@@ -84,134 +74,34 @@ function CategoryIcon({ category }: { category: string }) {
 // plus listing metadata the backend would add (id, applicants, status, dated).
 // ---------------------------------------------------------------------------
 
-const DUMMY_JOBS: JobListing[] = [
-    {
-        id: "job-001",
-        title: "Frontend Developer",
-        company: "HirePulse Network",
-        category: "Engineering & Tech",
-        jobType: "Full-time",
-        remoteAllowed: true,
-        location: "New York, USA",
-        deadline: "2026-05-30",
-        minSalary: "25",
-        maxSalary: "40",
-        frequency: "per hour",
-        responsibilities: "",
-        qualifications: "",
-        applicants: 24,
-        status: "Active",
-        createdAt: "2026-11-06",
-    },
-    {
-        id: "job-002",
-        title: "Senior Product Designer",
-        company: "HireLabs Labs",
-        category: "Design & Creative",
-        jobType: "Full-time",
-        remoteAllowed: false,
-        location: "London, UK (Hybrid)",
-        deadline: "2026-06-14",
-        minSalary: "90000",
-        maxSalary: "110000",
-        frequency: "per year",
-        responsibilities: "",
-        qualifications: "",
-        applicants: 18,
-        status: "Active",
-        createdAt: "2026-11-04",
-    },
-    {
-        id: "job-003",
-        title: "DevOps Specialist",
-        company: "HirePulse Platform",
-        category: "Engineering & Tech",
-        jobType: "Full-time",
-        remoteAllowed: false,
-        location: "Berlin, Germany",
-        deadline: "2026-06-30",
-        minSalary: "80000",
-        maxSalary: "120000",
-        frequency: "per year",
-        responsibilities: "",
-        qualifications: "",
-        applicants: 12,
-        status: "Active",
-        createdAt: "2026-10-28",
-    },
-    {
-        id: "job-004",
-        title: "Product Marketing Lead",
-        company: "HirePulse Network",
-        category: "Marketing",
-        jobType: "Full-time",
-        remoteAllowed: true,
-        location: "Remote, Europe",
-        deadline: "2026-07-15",
-        minSalary: "60000",
-        maxSalary: "110000",
-        frequency: "per year",
-        responsibilities: "",
-        qualifications: "",
-        applicants: 27,
-        status: "Active",
-        createdAt: "2026-11-02",
-    },
-    {
-        id: "job-005",
-        title: "QA Automation Engineer",
-        company: "HireLoop Backend",
-        category: "Engineering & Tech",
-        jobType: "Part-time",
-        remoteAllowed: false,
-        location: "Berlin, Germany (Hybrid)",
-        deadline: "2026-05-05",
-        minSalary: "35",
-        maxSalary: "60",
-        frequency: "per hour",
-        responsibilities: "",
-        qualifications: "",
-        applicants: 6,
-        status: "Expired",
-        createdAt: "2026-09-21",
-    },
-];
+
 
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
-function ManageJobsPage() {
-    const [jobs, setJobs] = React.useState<JobListing[]>(DUMMY_JOBS)
+async function ManageJobsPage() {
 
-    function deleteJob(id: string) {
-        setJobs((previous) => previous.filter((job) => job.id !== id))
-    }
+    const { ok, data } = await getJobs();
+    const jobs: JobListing[] =
+        ok && Array.isArray(data) ? (data as JobListing[]) : []
 
     return (
         <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
-            <p className="text-xs text-muted-foreground">
-                <span>Manage Jobs</span>
-                <span aria-hidden> &gt; </span>
-                <span>Job Listings &amp; Postings</span>
-            </p>
-
-            {/* Header */}
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl font-semibold tracking-tight">
-                        Manage Job Posts
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Review listings, monitor applicants, and update job details across
-                        your organization.
-                    </p>
-                </div>
-                <Button render={<Link href="/dashboard/recruiter/jobs/new" />}>
-                    <PlusIcon data-icon="inline-start" />
-                    New Job Post
-                </Button>
-            </div>
+            <PageHeader
+                breadcrumbs={[
+                    { label: "Manage Jobs" },
+                    { label: "Job Listings & Postings" },
+                ]}
+                title="Manage Job Posts"
+                description="Review listings, monitor applicants, and update job details across your organization."
+                action={
+                    <Button render={<Link href="/dashboard/recruiter/jobs/new" />}>
+                        <PlusIcon data-icon="inline-start" />
+                        New Job Post
+                    </Button>
+                }
+            />
 
             {/* Listings table */}
             <div className="mt-6 rounded-xl border bg-card">
@@ -318,15 +208,13 @@ function ManageJobsPage() {
 
                                     {/* Status */}
                                     <td className="px-3 py-4">
-                                        <span
-                                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs ${
-                                                job.status === "Active"
-                                                    ? "border-primary/20 bg-primary/10 text-primary"
-                                                    : "border-border bg-muted text-muted-foreground"
-                                            }`}
+                                        <Badge
+                                            variant={
+                                                job.status === "Active" ? "default" : "muted"
+                                            }
                                         >
                                             {job.status}
-                                        </span>
+                                        </Badge>
                                     </td>
 
                                     {/* Deadline */}
@@ -354,15 +242,7 @@ function ManageJobsPage() {
                                                 </span>
                                             </Button>
 
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                aria-label={`Delete ${job.title}`}
-                                                onClick={() => deleteJob(job.id)}
-                                                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                            >
-                                                <Trash2Icon />
-                                            </Button>
+                                            <DeleteJobDialogue job={job} />
 
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger
@@ -388,9 +268,7 @@ function ManageJobsPage() {
                                                     <DropdownMenuItem>
                                                         Mark as Expired
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => deleteJob(job.id)}
-                                                    >
+                                                    <DropdownMenuItem variant="destructive">
                                                         Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>

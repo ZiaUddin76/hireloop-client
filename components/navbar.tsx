@@ -23,6 +23,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { signOut, useSession } from "@/lib/auth-client"
+import type { SessionUser } from "@/lib/types/auth"
 import { cn } from "cn"
 import { ChevronDownIcon, LogOutIcon, MenuIcon } from "lucide-react"
 
@@ -42,7 +43,8 @@ const COMPANY_LINKS = [
 
 
 
-type SessionUser = NonNullable<ReturnType<typeof useSession>["data"]>["user"]
+// SessionUser is the better-auth session user shape, shared via lib/types/auth.
+
 
 
 // Built per render: the Dashboard href depends on the signed-in user's role,

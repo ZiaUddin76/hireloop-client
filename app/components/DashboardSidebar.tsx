@@ -26,8 +26,7 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import Link from "next/link"
-
-type Role = "seeker" | "recruiter" | "admin"
+import type { Role } from "@/lib/types/auth"
 
 type DashboardMenuItem = {
     name: string
@@ -67,7 +66,7 @@ export function DashboardSidebar() {
 
 
     const {data: session, isPending} = useSession();
-    const role = session?.user?.role || 'seeker';
+    const role = (session?.user?.role || "seeker") as Role;
 
 
 
@@ -79,7 +78,7 @@ export function DashboardSidebar() {
                 <SidebarGroup />
                 <SidebarGroup>
                     <SidebarMenu>
-                        {menuItemsByRole[role as Role].map((item) => (
+                        {menuItemsByRole[role].map((item) => (
                             <SidebarMenuItem key={item.name}>
                                 <SidebarMenuButton render={<Link href={item.url} />}>
                                     <item.icon />

@@ -1,13 +1,11 @@
 import type { JobForm, JobListing } from "@/lib/types/job";
+import type { ApiResponse } from "@/lib/types/api";
+
+// Re-exported for backwards compatibility; the type now lives in lib/types/api.
+export type { ApiResponse };
 
 const BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
-export type ApiResponse<T> = {
-    ok: boolean;
-    data?: T;
-    error?: string;
-};
 
 /**
  * Publish a new job posting (POST /jobs).
@@ -48,9 +46,9 @@ export const createJob = async (data: JobForm): Promise<ApiResponse<unknown>> =>
     }
 };
 
-export const getJobs = async (): Promise<ApiResponse<JobListing[] | unknown[]>> => {
+export const getJobs = async (query = ''): Promise<ApiResponse<JobListing[] | unknown[]>> => {
     try {
-        const res = await fetch(`${BASE_URL}/jobs`, { cache: "no-store" });
+        const res = await fetch(`${BASE_URL}/jobs?${query}`, { cache: "no-store" });
 
         if (!res.ok) {
             return {
@@ -60,6 +58,34 @@ export const getJobs = async (): Promise<ApiResponse<JobListing[] | unknown[]>> 
         }
 
         return { ok: true, data: await res.json() };
+    } catch (error) {
+        return {
+            ok: false,
+            error:
+                error instanceof Error
+                    ? `Could not reach the job service: ${error.message}`
+                    : "Could not reach the job service.",
+        };
+    }
+};
+
+
+export const deleteJob = async (
+    jobId: string
+): Promise<ApiResponse<unknown>> => {
+    try {
+        const res = await fetch(`${BASE_URL}/jobs/${jobId}`, {
+            method: "DELETE",
+        });
+
+        if (!res.ok) {
+            return {
+                ok: false,
+                error: `Failed to delete job (HTTP ${res.status})`,
+            };
+        }
+
+        return { ok: true };
     } catch (error) {
         return {
             ok: false,
