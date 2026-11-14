@@ -1,11 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 
 import { JOB_CATEGORIES, JOB_TYPES } from "@/lib/constants/job"
+import { buildJobsHref, type JobBrowseFilters } from "@/lib/helpers/jobs"
 import { cn } from "cn"
 
-// Work mode is derived from the job's `remoteAllowed` field.
+// Work mode is derived from the job's `remoteAllowed` (isRemote) field.
 const WORK_MODES = ["Remote", "On-site"] as const
 
 type FilterGroupProps = {
@@ -64,13 +66,20 @@ function FilterGroup({
 }
 
 // Sidebar of filter options built from the job's common fields: jobType,
-// remoteAllowed (as work mode) and category. Toggling an option only updates
-// local state for now — applying the filters (e.g. syncing them into the URL /
-// search query) is intentionally left unimplemented.
-function JobFilters({ className }: React.ComponentProps<"div">) {
-    const [selectedJobTypes, setSelectedJobTypes] = React.useState<string[]>([])
-    const [selectedWorkModes, setSelectedWorkModes] = React.useState<string[]>([])
-    const [selectedCategories, setSelectedCategories] = React.useState<string[]>([])
+// remoteAllowed (as work mode) and category. Every change is pushed into the
+// URL, which re-renders the server page with filtered results.
+function JobFilters({
+    filters,
+    className,
+}: {
+    filters: JobBrowseFilters
+} & React.ComponentProps<"div">) {
+    const router = useRouter()
+
+    // Applying a filter always starts a fresh result set.
+    function applyFilters(overrides: Partial<JobBrowseFilters>) {
+        router.push(buildJobsHref(filters, { ...overrides, page: 1 }))
+    }
 
     return (
         <div
@@ -82,21 +91,27 @@ function JobFilters({ className }: React.ComponentProps<"div">) {
             <FilterGroup
                 title="Job Type"
                 options={JOB_TYPES}
-                selected={selectedJobTypes}
-                onChange={setSelectedJobTypes}
+                selected={filters.jobType ? [filters.jobType] : []}
+                onChange={(selected) =>
+                    applyFilters({ jobType: selected[0] ?? "" })
+                }
             />
             <FilterGroup
                 title="Work Mode"
                 options={WORK_MODES}
-                selected={selectedWorkModes}
-                onChange={setSelectedWorkModes}
+                selected={filters.workModes}
                 multiple
+                onChange={(selected) =>
+                    applyFilters({ workModes: selected })
+                }
             />
             <FilterGroup
                 title="Category"
                 options={JOB_CATEGORIES}
-                selected={selectedCategories}
-                onChange={setSelectedCategories}
+                selected={filters.category ? [filters.category] : []}
+                onChange={(selected) =>
+                    applyFilters({ category: selected[0] ?? "" })
+                }
             />
         </div>
     )

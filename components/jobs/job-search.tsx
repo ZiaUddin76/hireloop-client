@@ -1,21 +1,30 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 
 import { SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { buildJobsHref, type JobBrowseFilters } from "@/lib/helpers/jobs"
 import { cn } from "cn"
 
 // Search bar for the browse-jobs page: keyword input + submit button.
-// The query stays in local state; navigating to the results (e.g. updating the
-// URL with ?q=...) is intentionally left unimplemented.
-function JobSearch({ className }: React.ComponentProps<"form">) {
-    const [query, setQuery] = React.useState("")
+// Submitting pushes the query into the URL, which re-renders the server page
+// with fresh results (preserving any active filters).
+function JobSearch({
+    filters,
+    className,
+}: {
+    filters: JobBrowseFilters
+} & React.ComponentProps<"form">) {
+    const router = useRouter()
+    const [query, setQuery] = React.useState(filters.q)
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
+        router.push(buildJobsHref(filters, { q: query, page: 1 }))
     }
 
     return (

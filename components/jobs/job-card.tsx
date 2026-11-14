@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { BookmarkIcon, BanknoteIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -25,7 +27,12 @@ function JobCard({ job, className }: { job: JobListing; className?: string }) {
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                     <h2 className="font-heading text-base font-semibold">
-                        {job.title}
+                        <Link
+                            href={`/browse-jobs/${job.id}`}
+                            className="transition-colors hover:text-primary"
+                        >
+                            {job.title}
+                        </Link>
                     </h2>
                     <p className="mt-1 truncate text-sm text-muted-foreground">
                         {job.company} • {job.location}

@@ -87,7 +87,7 @@ export function Hero({ className }: React.ComponentProps<"section">) {
 
         {/* Search */}
         <form
-          action="/jobs"
+          action="/browse-jobs"
           method="get"
           className="mx-auto mt-10 flex w-full max-w-3xl flex-col gap-4 rounded-2xl border border-white/20 bg-[#101010] p-4 sm:flex-row sm:items-center sm:rounded-full sm:py-0 lg:gap-2"
         >

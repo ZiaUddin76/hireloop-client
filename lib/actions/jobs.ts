@@ -46,7 +46,9 @@ export const createJob = async (data: JobForm): Promise<ApiResponse<unknown>> =>
     }
 };
 
-export const getJobs = async (query = ''): Promise<ApiResponse<JobListing[] | unknown[]>> => {
+export const getJobs = async (
+    query = ''
+): Promise<ApiResponse<JobListing[] | unknown[]> & { total?: number }> => {
     try {
         const res = await fetch(`${BASE_URL}/jobs?${query}`, { cache: "no-store" });
 
@@ -57,7 +59,18 @@ export const getJobs = async (query = ''): Promise<ApiResponse<JobListing[] | un
             };
         }
 
-        return { ok: true, data: await res.json() };
+        // When the backend paginates, the total matching count arrives via
+        // the X-Total-Count header.
+        const total = Number(res.headers.get("X-Total-Count"));
+
+        const raw = await res.json();
+        // MongoDB documents carry their id as `_id`; expose it as `id` so
+        // consumers get a stable key / identifier as promised by JobListing.
+        const data = Array.isArray(raw)
+            ? raw.map((doc) => ({ ...doc, id: doc._id ?? doc.id }))
+            : raw;
+
+        return { ok: true, data, total: total || undefined };
     } catch (error) {
         return {
             ok: false,
@@ -69,6 +82,35 @@ export const getJobs = async (query = ''): Promise<ApiResponse<JobListing[] | un
     }
 };
 
+
+export const getJob = async (jobId: string): Promise<ApiResponse<JobListing>> => {
+    try {
+        const res = await fetch(`${BASE_URL}/jobs/${jobId}`, { cache: "no-store" });
+
+        if (!res.ok) {
+            return {
+                ok: false,
+                error:
+                    res.status === 404
+                        ? "Job not found."
+                        : `Failed to load job (HTTP ${res.status})`,
+            };
+        }
+
+        // MongoDB documents carry their id as `_id`; expose it as `id` so
+        // consumers get a stable key / identifier as promised by JobListing.
+        const doc = await res.json();
+        return { ok: true, data: { ...doc, id: doc._id ?? doc.id } };
+    } catch (error) {
+        return {
+            ok: false,
+            error:
+                error instanceof Error
+                    ? `Could not reach the job service: ${error.message}`
+                    : "Could not reach the job service.",
+        };
+    }
+};
 
 export const deleteJob = async (
     jobId: string

@@ -51,7 +51,7 @@ const COMPANY_LINKS = [
 // which is only known inside components via `useSession()`.
 function navLinks(user?: SessionUser | null) {
   return [
-    { label: "Browse Jobs", href: "/jobs" },
+    { label: "Browse Jobs", href: "/browse-jobs" },
     { label: "Company", href: "/company" },
     { label: "Pricing", href: "/pricing" },
     { label: "Dashboard", href: `/dashboard/${user?.role || "seeker"}` },

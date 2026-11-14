@@ -3,6 +3,7 @@
 import { AuthForm, type AuthFormData } from "@/components/auth-form"
 import { AuthBackdrop } from "@/components/auth-backdrop"
 import { authClient } from "@/lib/auth-client"
+import { useSearchParams } from "next/navigation"
 
 async function handleSignIn(data: AuthFormData) {
   const { error } = await authClient.signIn.email({
@@ -15,6 +16,12 @@ async function handleSignIn(data: AuthFormData) {
 }
 
 export default function SignInPage() {
+
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirectTo") ?? "/"
+
+  console.log('redirectTo', redirectTo);
+
   return (
     <main
       data-slot="auth-page"
